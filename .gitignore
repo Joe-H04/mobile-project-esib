@@ -1,0 +1,39 @@
+# macOS and editor files
+.DS_Store
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+.claude/
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Node backend
+backend/node_modules/
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+backend/pnpm-debug.log*
+backend/.env
+backend/.env.*
+!backend/.env.example
+!backend/.env.sample
+backend/coverage/
+backend/.nyc_output/
+
+# Android
+android/.gradle/
+android/.idea/
+android/.kotlin/
+android/local.properties
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+android/**/build/
+android/*.jks
+android/*.keystore

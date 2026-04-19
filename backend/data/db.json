@@ -1,0 +1,119 @@
+{
+  "users": [
+    {
+      "id": "0fd5f56d-3bbd-4a1a-887d-b9abae68eb29",
+      "email": "joehoueiss95@gmail.com",
+      "passwordHash": "$2b$10$m1XvaS0efMH3RzyotR9RheTKGjMyTveFXnAMli6s4Ob4CtRgweHja",
+      "balance": 588,
+      "createdAt": "2026-04-18T14:19:43.446Z"
+    },
+    {
+      "id": "a4d6447a-b2fd-4627-8675-ff4354d5f5af",
+      "email": "eliesaddi350@gmail.com",
+      "passwordHash": "$2b$10$qIPHEK/7FdTnzIaP9N9Na.zo4BpQN4mDdO5yPNyXA43z7RtmjJDla",
+      "balance": 1011.96,
+      "createdAt": "2026-04-18T14:36:16.548Z"
+    }
+  ],
+  "bets": [
+    {
+      "id": "21fc2189-e909-483f-bd42-99b72c9cc3e1",
+      "userId": "0fd5f56d-3bbd-4a1a-887d-b9abae68eb29",
+      "marketId": "0x9c1a953fe92c8357f1b646ba25d983aa83e90c525992db14fb726fa895cb5763",
+      "marketQuestion": "Russia-Ukraine Ceasefire before GTA VI?",
+      "side": "YES",
+      "shares": 18.69,
+      "pricePerShare": 0.535,
+      "totalCost": 10,
+      "createdAt": "2026-04-18T14:22:37.559Z",
+      "redeemed": false,
+      "payout": 0,
+      "redeemedAt": null
+    },
+    {
+      "id": "bee775ae-03f9-4914-9c9e-d85fbab7267f",
+      "userId": "0fd5f56d-3bbd-4a1a-887d-b9abae68eb29",
+      "marketId": "0xcccb7e7613a087c132b69cbf3a02bece3fdcb824c1da54ae79acc8d4a562d902",
+      "marketQuestion": "GTA VI released before June 2026?",
+      "side": "NO",
+      "shares": 101.37,
+      "pricePerShare": 0.9865,
+      "totalCost": 100,
+      "createdAt": "2026-04-18T14:29:53.761Z",
+      "redeemed": false,
+      "payout": 0,
+      "redeemedAt": null
+    },
+    {
+      "id": "cc2a8140-d853-4642-b05b-fb7b8f51d531",
+      "userId": "0fd5f56d-3bbd-4a1a-887d-b9abae68eb29",
+      "marketId": "0x60fe04c1ac3554683d34a3a2ce5b3d95f0dba26a033ad01e8ebbfb7fe9b17a6e",
+      "marketQuestion": "Will TSG 1899 Hoffenheim vs. BV Borussia 09 Dortmund end in a draw?",
+      "side": "YES",
+      "shares": 465.12,
+      "pricePerShare": 0.215,
+      "totalCost": 100,
+      "createdAt": "2026-04-18T14:33:33.255Z",
+      "redeemed": true,
+      "payout": 0,
+      "redeemedAt": "2026-04-18T22:31:47.126Z"
+    },
+    {
+      "id": "622d19a2-b1e7-4ca3-a12e-82f5f8d2cb14",
+      "userId": "a4d6447a-b2fd-4627-8675-ff4354d5f5af",
+      "marketId": "0xcccb7e7613a087c132b69cbf3a02bece3fdcb824c1da54ae79acc8d4a562d902",
+      "marketQuestion": "GTA VI released before June 2026?",
+      "side": "YES",
+      "shares": 370.37,
+      "pricePerShare": 0.0135,
+      "totalCost": 5,
+      "createdAt": "2026-04-18T14:36:52.305Z",
+      "redeemed": false,
+      "payout": 0,
+      "redeemedAt": null
+    },
+    {
+      "id": "c3b86986-914d-46f4-a69b-8c637e6e183a",
+      "userId": "a4d6447a-b2fd-4627-8675-ff4354d5f5af",
+      "marketId": "0x382881b2a0f060d0ac64c7684f533499e02b4895126c521a1b0ed1aabba8582a",
+      "marketQuestion": "Will 1. FC Union Berlin win on 2026-04-18?",
+      "side": "NO",
+      "shares": 116.96,
+      "pricePerShare": 0.855,
+      "totalCost": 100,
+      "createdAt": "2026-04-18T14:38:14.712Z",
+      "redeemed": true,
+      "payout": 116.96,
+      "redeemedAt": "2026-04-18T22:23:20.440Z"
+    },
+    {
+      "id": "ca5789ba-a421-404e-b53d-122389f86730",
+      "userId": "0fd5f56d-3bbd-4a1a-887d-b9abae68eb29",
+      "marketId": "0x84f8b70331323c2fba97d7ceaa9a35fb645a0770d0dbff169d07f24f376766e9",
+      "marketQuestion": "Trump out as President before GTA VI?",
+      "side": "NO",
+      "shares": 412.37,
+      "pricePerShare": 0.485,
+      "totalCost": 200,
+      "createdAt": "2026-04-18T22:32:24.504Z",
+      "redeemed": false,
+      "payout": 0,
+      "redeemedAt": null
+    },
+    {
+      "id": "b5b2ae14-fd5c-45ee-ac9e-9dd5780501b7",
+      "userId": "0fd5f56d-3bbd-4a1a-887d-b9abae68eb29",
+      "marketId": "0x79e7d16f5c71ab6ff5f805f77045eb5cef7b8f6aa87db54ebabeb3373d31b254",
+      "marketQuestion": "Trump renames Strait of Hormuz to \"Strait of Trump\" by May 31?",
+      "side": "YES",
+      "shares": 36.36,
+      "pricePerShare": 0.055,
+      "totalCost": 2,
+      "createdAt": "2026-04-18T22:33:07.724Z",
+      "redeemed": false,
+      "payout": 0,
+      "redeemedAt": null
+    }
+  ],
+  "watchlist": []
+}
