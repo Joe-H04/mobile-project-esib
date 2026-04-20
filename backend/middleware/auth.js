@@ -10,7 +10,11 @@ module.exports = function authMiddleware(req, res, next) {
   const token = header.split(" ")[1];
   try {
     const decoded = jwt.verify(token, config.JWT_SECRET);
-    req.user = { userId: decoded.userId, email: decoded.email };
+    req.user = {
+      userId: decoded.userId,
+      email: decoded.email,
+      role: decoded.role || "user",
+    };
     next();
   } catch (err) {
     return res.status(401).json({ error: "Invalid token" });

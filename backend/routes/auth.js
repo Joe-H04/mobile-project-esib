@@ -37,14 +37,19 @@ router.post("/register", (req, res) => {
   store.persist();
 
   const token = jwt.sign(
-    { userId: user.id, email: user.email },
+    { userId: user.id, email: user.email, role: user.role || "user" },
     config.JWT_SECRET,
     { expiresIn: "7d" }
   );
 
   res.status(201).json({
     token,
-    user: { id: user.id, email: user.email, balance: user.balance },
+    user: {
+      id: user.id,
+      email: user.email,
+      balance: user.balance,
+      role: user.role || "user",
+    },
   });
 });
 
@@ -65,14 +70,19 @@ router.post("/login", (req, res) => {
   }
 
   const token = jwt.sign(
-    { userId: user.id, email: user.email },
+    { userId: user.id, email: user.email, role: user.role || "user" },
     config.JWT_SECRET,
     { expiresIn: "7d" }
   );
 
   res.json({
     token,
-    user: { id: user.id, email: user.email, balance: user.balance },
+    user: {
+      id: user.id,
+      email: user.email,
+      balance: user.balance,
+      role: user.role || "user",
+    },
   });
 });
 

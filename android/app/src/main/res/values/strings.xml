@@ -60,4 +60,18 @@
     <string name="profile_redeemed">Redeemed</string>
     <string name="profile_wins">Wins</string>
     <string name="leaderboard_rank">#%1$d</string>
+    <string name="geo_block_title">Region not supported</string>
+    <string name="geo_block_message">BetNow is not available in your current region. Prediction market platforms are restricted in certain countries, and this app enforces the same restrictions.</string>
+    <string name="geo_block_country_label">Detected: %1$s</string>
+    <string name="geo_block_country_close_only">Detected: %1$s (close-only region)</string>
+    <string name="geo_block_location_unavailable">Unable to determine your location. Enable location services and retry.</string>
+    <string name="support_title">Customer Support</string>
+    <string name="support_input_hint">Message our team…</string>
+    <string name="support_send">Send</string>
+    <string name="support_empty">No messages yet. Send us a message and we\'ll get back to you.</string>
+    <string name="support_admin_label">Support</string>
+    <string name="support_status_connecting">Connecting…</string>
+    <string name="support_status_online">Online</string>
+    <string name="support_status_offline">Offline — retrying</string>
+    <string name="profile_support">Customer support</string>
 </resources>

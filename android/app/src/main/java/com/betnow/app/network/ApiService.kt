@@ -48,4 +48,7 @@ interface ApiService {
 
     @GET("api/leaderboard")
     suspend fun getLeaderboard(): Response<LeaderboardResponse>
+
+    @GET("api/support/me")
+    suspend fun getSupportHistory(): Response<SupportHistoryResponse>
 }

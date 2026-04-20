@@ -3,7 +3,7 @@ const path = require("path");
 
 const DB_PATH = path.join(__dirname, "db.json");
 
-const PERSISTED_KEYS = ["users", "bets", "watchlist"];
+const PERSISTED_KEYS = ["users", "bets", "watchlist", "supportChats"];
 
 function load() {
   try {
@@ -38,7 +38,7 @@ function hydrate(store) {
     if (Array.isArray(data[key])) store[key] = data[key];
   }
   console.log(
-    `Loaded from db.json: ${store.users.length} users, ${store.bets.length} bets, ${store.watchlist.length} watchlist entries`
+    `Loaded from db.json: ${store.users.length} users, ${store.bets.length} bets, ${store.watchlist.length} watchlist entries, ${store.supportChats.length} chats`
   );
 }
 

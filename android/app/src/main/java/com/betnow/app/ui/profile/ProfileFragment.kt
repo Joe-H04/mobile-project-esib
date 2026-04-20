@@ -13,6 +13,7 @@ import com.betnow.app.databinding.FragmentProfileBinding
 import com.betnow.app.network.models.UserStats
 import com.betnow.app.ui.auth.LoginActivity
 import com.betnow.app.ui.main.MainActivity
+import com.betnow.app.ui.support.SupportActivity
 import com.betnow.app.util.Resource
 import com.betnow.app.util.TokenManager
 import com.betnow.app.util.UiFormatters
@@ -35,6 +36,10 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.swipeRefresh.setOnRefreshListener { viewModel.load() }
+
+        binding.supportButton.setOnClickListener {
+            startActivity(Intent(requireContext(), SupportActivity::class.java))
+        }
 
         binding.logoutButton.setOnClickListener {
             TokenManager.clear(requireContext())

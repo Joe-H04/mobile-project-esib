@@ -30,6 +30,7 @@ function baseMarket(overrides = {}) {
     endDate: overrides.endDate || null,
     active: overrides.active ?? true,
     closed: overrides.closed ?? false,
+    isSports: overrides.isSports ?? false,
     resolved: overrides.resolved ?? false,
     winningOutcome: overrides.winningOutcome || null,
     lastUpdated: overrides.lastUpdated || null,
@@ -144,6 +145,34 @@ test("markets route falls back to active local search matches only", async () =>
     result.body.markets.map((market) => market.id),
     ["active-hormuz"]
   );
+});
+
+test("categories route collapses sports subcategories into Sports only", async () => {
+  resetStore();
+  store.markets = [
+    baseMarket({
+      id: "football-market",
+      category: "Football",
+      isSports: true,
+    }),
+    baseMarket({
+      id: "basketball-market",
+      category: "Basketball",
+      isSports: true,
+    }),
+    baseMarket({
+      id: "crypto-market",
+      category: "Crypto",
+    }),
+  ];
+
+  const result = await invokeRoute(marketsRouter, "/categories", "get");
+
+  assert.equal(result.statusCode, 200);
+  assert.deepEqual(result.body.categories, [
+    { name: "Sports", count: 2 },
+    { name: "Crypto", count: 1 },
+  ]);
 });
 
 function invokeRoute(router, path, method, req = {}) {

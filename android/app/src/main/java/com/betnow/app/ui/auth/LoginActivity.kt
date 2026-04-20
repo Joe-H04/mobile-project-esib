@@ -1,31 +1,38 @@
 package com.betnow.app.ui.auth
 
+import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.betnow.app.databinding.ActivityLoginBinding
+import com.betnow.app.ui.geo.GeoBlockActivity
 import com.betnow.app.ui.main.MainActivity
+import com.betnow.app.util.GeoRestrictionManager
 import com.betnow.app.util.Resource
 import com.betnow.app.util.TokenManager
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
     private val viewModel: AuthViewModel by viewModels()
 
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { runGeoCheck() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        if (TokenManager.isLoggedIn(this)) {
-            navigateToMain()
-            return
-        }
-
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setFormEnabled(false)
 
         binding.loginButton.setOnClickListener {
             val email = binding.emailInput.text.toString().trim()
@@ -67,6 +74,58 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        ensureGeoAllowed()
+    }
+
+    private fun ensureGeoAllowed() {
+        permissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        )
+    }
+
+    private fun runGeoCheck() {
+        binding.progressBar.visibility = View.VISIBLE
+        setFormEnabled(false)
+        lifecycleScope.launch {
+            val status = withContext(Dispatchers.IO) { GeoRestrictionManager.check(this@LoginActivity) }
+            binding.progressBar.visibility = View.GONE
+            when (status) {
+                is GeoRestrictionManager.Status.Allowed -> {
+                    setFormEnabled(true)
+                    if (TokenManager.isLoggedIn(this@LoginActivity)) navigateToMain()
+                }
+                is GeoRestrictionManager.Status.Blocked -> {
+                    TokenManager.clear(this@LoginActivity)
+                    startActivity(
+                        GeoBlockActivity.newIntent(
+                            this@LoginActivity,
+                            status.countryCode,
+                            status.closeOnly
+                        )
+                    )
+                    finish()
+                }
+                GeoRestrictionManager.Status.PermissionMissing,
+                GeoRestrictionManager.Status.LocationUnavailable -> {
+                    startActivity(GeoBlockActivity.newIntent(this@LoginActivity, null, false))
+                    finish()
+                }
+            }
+        }
+    }
+
+    private fun setFormEnabled(enabled: Boolean) {
+        binding.loginButton.isEnabled = enabled
+        binding.emailInput.isEnabled = enabled
+        binding.passwordInput.isEnabled = enabled
+        binding.registerLink.isEnabled = enabled
     }
 
     private fun navigateToMain() {

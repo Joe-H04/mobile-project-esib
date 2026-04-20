@@ -1,0 +1,4 @@
+{
+  "ignore": ["data/db.json", "data/db.json.tmp", "public/**"],
+  "ext": "js,json"
+}

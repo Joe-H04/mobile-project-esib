@@ -24,6 +24,7 @@ class MarketListFragment : Fragment() {
     private val viewModel: MarketListViewModel by viewModels()
     private lateinit var adapter: MarketListAdapter
     private var shouldScrollToTopOnNextResults = false
+    private var hasPositionedInitialCategoryScroll = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -85,6 +86,10 @@ class MarketListFragment : Fragment() {
 
         viewModel.categories.observe(viewLifecycleOwner) { categories ->
             renderCategoryChips(categories.map { it.name })
+            if (categories.isNotEmpty() && !hasPositionedInitialCategoryScroll) {
+                scrollCategoryChipsToStart()
+                hasPositionedInitialCategoryScroll = true
+            }
         }
 
         viewModel.watchlistIds.observe(viewLifecycleOwner) { ids ->
@@ -159,6 +164,17 @@ class MarketListFragment : Fragment() {
         }
     }
 
+    private fun scrollCategoryChipsToStart() {
+        binding.categoryScroll.post {
+            val direction = if (binding.root.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
+                View.FOCUS_RIGHT
+            } else {
+                View.FOCUS_LEFT
+            }
+            binding.categoryScroll.fullScroll(direction)
+        }
+    }
+
     private fun requestResultsScrollToTop() {
         shouldScrollToTopOnNextResults = true
     }
@@ -181,6 +197,7 @@ class MarketListFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        hasPositionedInitialCategoryScroll = false
         _binding = null
     }
 }

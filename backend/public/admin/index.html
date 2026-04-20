@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BetNow Admin Support</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="login" class="login-card hidden">
+      <h1>BetNow Admin</h1>
+      <p class="sub">Sign in to handle customer support.</p>
+      <form id="login-form">
+        <label>Email<input type="email" id="email" required autocomplete="username" /></label>
+        <label>Password<input type="password" id="password" required autocomplete="current-password" /></label>
+        <button type="submit">Sign in</button>
+        <p class="error" id="login-error"></p>
+      </form>
+    </div>
+
+    <div id="app" class="app hidden">
+      <header>
+        <div class="brand">BetNow · Support</div>
+        <div class="spacer"></div>
+        <div class="session">
+          <span id="session-email"></span>
+          <button id="logout" class="link">Sign out</button>
+        </div>
+      </header>
+      <main>
+        <aside class="chats">
+          <div class="chats-header">
+            <span>Conversations</span>
+            <span id="chats-count" class="badge">0</span>
+          </div>
+          <ul id="chat-list"></ul>
+        </aside>
+        <section class="thread">
+          <div id="thread-empty" class="thread-empty">
+            Select a conversation to begin.
+          </div>
+          <div id="thread" class="hidden">
+            <div class="thread-header">
+              <div id="thread-email" class="thread-email"></div>
+              <div id="thread-meta" class="thread-meta"></div>
+            </div>
+            <div id="messages" class="messages"></div>
+            <form id="reply-form" class="reply">
+              <textarea id="reply-text" rows="2" placeholder="Write a reply…" required></textarea>
+              <button type="submit">Send</button>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

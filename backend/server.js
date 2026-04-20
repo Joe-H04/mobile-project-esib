@@ -1,3 +1,4 @@
+const path = require("path");
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
@@ -9,11 +10,13 @@ const marketRoutes = require("./routes/markets");
 const betRoutes = require("./routes/bets");
 const watchlistRoutes = require("./routes/watchlist");
 const leaderboardRoutes = require("./routes/leaderboard");
+const supportRoutes = require("./routes/support");
 const { setupSocket } = require("./socket");
 const {
   seedMarkets,
   startPeriodicRefresh,
 } = require("./services/polymarket");
+const { seedAdmin } = require("./services/seedAdmin");
 
 const app = express();
 
@@ -26,6 +29,10 @@ app.use("/api/markets", marketRoutes);
 app.use("/api/bets", betRoutes);
 app.use("/api/watchlist", watchlistRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
+app.use("/api/support", supportRoutes);
+
+// Admin dashboard (static)
+app.use("/admin", express.static(path.join(__dirname, "public", "admin")));
 
 // Health check
 app.get("/api/health", (req, res) => {
@@ -35,6 +42,7 @@ app.get("/api/health", (req, res) => {
     usersCount: store.users.length,
     betsCount: store.bets.length,
     watchlistCount: store.watchlist.length,
+    supportChatsCount: store.supportChats.length,
   });
 });
 
@@ -43,11 +51,13 @@ async function start() {
   const server = http.createServer(app);
   const io = setupSocket(server);
 
+  seedAdmin();
   await seedMarkets();
   startPeriodicRefresh(io);
 
   server.listen(config.PORT, () => {
     console.log(`BetNow server running on port ${config.PORT}`);
+    console.log(`Admin dashboard: http://localhost:${config.PORT}/admin`);
   });
 
   const shutdown = () => {

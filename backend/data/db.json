@@ -4,7 +4,7 @@
       "id": "0fd5f56d-3bbd-4a1a-887d-b9abae68eb29",
       "email": "joehoueiss95@gmail.com",
       "passwordHash": "$2b$10$m1XvaS0efMH3RzyotR9RheTKGjMyTveFXnAMli6s4Ob4CtRgweHja",
-      "balance": 588,
+      "balance": 378,
       "createdAt": "2026-04-18T14:19:43.446Z"
     },
     {
@@ -13,6 +13,21 @@
       "passwordHash": "$2b$10$qIPHEK/7FdTnzIaP9N9Na.zo4BpQN4mDdO5yPNyXA43z7RtmjJDla",
       "balance": 1011.96,
       "createdAt": "2026-04-18T14:36:16.548Z"
+    },
+    {
+      "id": "44c06136-1396-4660-b89b-45d47fbe17c2",
+      "email": "kevinboutros763@gmail.com",
+      "passwordHash": "$2b$10$FIIh.iSqeu3XKuPVSnBw7euHE9tDFbdfy8a.PrH574t3odr9PwT5m",
+      "balance": 900,
+      "createdAt": "2026-04-20T11:22:25.910Z"
+    },
+    {
+      "id": "8f29c266-d9e7-4508-b3c9-27069e5c4529",
+      "email": "admin@betnow.local",
+      "passwordHash": "$2b$10$MY.SIbKY13auiMetS/.sSeppntpXsYppRdj8meDUrDyKRGcZ0ThkC",
+      "balance": 0,
+      "role": "admin",
+      "createdAt": "2026-04-20T11:34:00.442Z"
     }
   ],
   "bets": [
@@ -113,7 +128,78 @@
       "redeemed": false,
       "payout": 0,
       "redeemedAt": null
+    },
+    {
+      "id": "7430a929-d23f-431e-9ecc-419e6f8d7d42",
+      "userId": "0fd5f56d-3bbd-4a1a-887d-b9abae68eb29",
+      "marketId": "0x73d3b0ef2459efffaed8735f1b8c03bdd3a9359f9d5d06e54d3cb4d047303679",
+      "marketQuestion": "Will Free Patriotic Movement win the most seats in the 2026 Lebanese parliamentary election?",
+      "side": "NO",
+      "shares": 206.72,
+      "pricePerShare": 0.9675,
+      "totalCost": 200,
+      "createdAt": "2026-04-19T20:11:19.819Z",
+      "redeemed": false,
+      "payout": 0,
+      "redeemedAt": null
+    },
+    {
+      "id": "7f35fc17-20d5-47ff-ae5e-a5da076e60b3",
+      "userId": "0fd5f56d-3bbd-4a1a-887d-b9abae68eb29",
+      "marketId": "0x7fc8cbbaffb85050f6434b8099e6a88bce4996af4b7dc371edecffdff1102473",
+      "marketQuestion": "Will Lebanese Forces win the most seats in the 2026 Lebanese parliamentary election?",
+      "side": "YES",
+      "shares": 133.33,
+      "pricePerShare": 0.075,
+      "totalCost": 10,
+      "createdAt": "2026-04-19T20:13:50.594Z",
+      "redeemed": false,
+      "payout": 0,
+      "redeemedAt": null
+    },
+    {
+      "id": "24b439d5-7d8b-4eb2-b41a-ad09b8a8a8ec",
+      "userId": "44c06136-1396-4660-b89b-45d47fbe17c2",
+      "marketId": "0xa1f08ec3bcc1434cb0b695bd5ee9f81268ef45fb73f752b3a1c1fb1d35750866",
+      "marketQuestion": "Will Real Madrid win the 2025–26 La Liga?",
+      "side": "NO",
+      "shares": 102.35,
+      "pricePerShare": 0.977,
+      "totalCost": 100,
+      "createdAt": "2026-04-20T11:23:38.279Z",
+      "redeemed": false,
+      "payout": 0,
+      "redeemedAt": null
     }
   ],
-  "watchlist": []
+  "watchlist": [
+    {
+      "userId": "0fd5f56d-3bbd-4a1a-887d-b9abae68eb29",
+      "marketId": "0xcccb7e7613a087c132b69cbf3a02bece3fdcb824c1da54ae79acc8d4a562d902",
+      "createdAt": "2026-04-19T20:22:40.058Z"
+    }
+  ],
+  "supportChats": [
+    {
+      "userId": "44c06136-1396-4660-b89b-45d47fbe17c2",
+      "userEmail": "kevinboutros763@gmail.com",
+      "messages": [
+        {
+          "id": "38c7629d-4a19-4b1e-8028-f35eafcfa192",
+          "from": "user",
+          "text": "hi",
+          "ts": "2026-04-20T11:40:35.094Z"
+        },
+        {
+          "id": "e55e68d7-cbe0-4b39-aacc-fd0def953373",
+          "from": "admin",
+          "text": "hello mr boutris",
+          "ts": "2026-04-20T11:40:52.212Z"
+        }
+      ],
+      "lastMessageAt": "2026-04-20T11:40:52.212Z",
+      "unreadForAdmin": 1,
+      "unreadForUser": 1
+    }
+  ]
 }

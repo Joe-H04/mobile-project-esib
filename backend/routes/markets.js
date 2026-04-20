@@ -75,7 +75,10 @@ router.get("/categories", (req, res) => {
   const counts = new Map();
   let sportsCount = 0;
   for (const m of store.markets) {
-    if (m.isSports) sportsCount += 1;
+    if (m.isSports) {
+      sportsCount += 1;
+      continue;
+    }
     const key = m.category || "Other";
     counts.set(key, (counts.get(key) || 0) + 1);
   }

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BetNow Frontend Questions Prep</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.5;
+      margin: 40px;
+      color: #111;
+    }
+    h1 { font-size: 26px; margin-bottom: 8px; }
+    h2 { font-size: 20px; margin-top: 26px; margin-bottom: 8px; }
+    h3 { font-size: 16px; margin-top: 18px; margin-bottom: 6px; }
+    p, li { font-size: 12px; }
+    .muted { color: #444; }
+    .box {
+      border: 1px solid #ccc;
+      padding: 12px 14px;
+      background: #fafafa;
+      margin: 12px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>BetNow Frontend Study Notes</h1>
+  <p class="muted">
+    Focused on explaining the project and preparing for possible frontend-only questions in a mobile development course.
+  </p>
+
+  <h2>1. What The Project Is</h2>
+  <p>
+    BetNow is a native Android prediction market application. The idea of the app is that users can browse ongoing
+    markets, see the current YES and NO prices, choose a side, and place a bet. From the frontend side, the app is designed
+    to make this flow simple: discover markets, inspect details, preview the bet, place it, and then track results.
+  </p>
+  <p>
+    The app also includes supporting user features that make it feel like a full product rather than only one betting screen.
+    A user can register and log in, save markets to a watchlist, review personal bets, redeem resolved bets, view a leaderboard,
+    and check profile information such as balance and profit/loss statistics.
+  </p>
+  <p>
+    So if you need a short explanation in class, a good version is:
+  </p>
+  <div class="box">
+    <p>
+      BetNow is a mobile Android app for prediction markets. Users can create an account, browse available markets,
+      track live prices, place YES or NO bets, save markets to a watchlist, review their bets, and monitor their balance
+      and performance. The frontend focuses on clear navigation, real-time updates, and handling different UI states such
+      as loading, errors, empty lists, and successful actions.
+    </p>
+  </div>
+
+  <h2>2. What The Frontend Specifically Does</h2>
+  <ul>
+    <li>Provides authentication screens for login and registration</li>
+    <li>Shows the main app shell with toolbar and bottom navigation</li>
+    <li>Displays a list of markets with search, sorting, and category filtering</li>
+    <li>Lets the user open a market detail screen and inspect prices and metadata</li>
+    <li>Lets the user choose YES or NO, enter an amount, preview shares, and place a bet</li>
+    <li>Lets the user add or remove markets from a watchlist</li>
+    <li>Shows the user’s own bets and lets them redeem resolved bets</li>
+    <li>Shows a leaderboard and a profile/statistics screen</li>
+    <li>Updates market prices in real time using Socket.io</li>
+    <li>Handles loading states, error states, empty states, and retry behavior</li>
+  </ul>
+
+  <h2>3. Frontend Stack You Should Know How To Mention</h2>
+  <ul>
+    <li><strong>Language:</strong> Kotlin</li>
+    <li><strong>UI:</strong> XML layouts with Material Components</li>
+    <li><strong>Architecture:</strong> Activity + Fragments + ViewModels + LiveData</li>
+    <li><strong>Networking:</strong> Retrofit + OkHttp</li>
+    <li><strong>Real-time updates:</strong> Socket.io</li>
+    <li><strong>Lists:</strong> RecyclerView with ListAdapter and DiffUtil</li>
+    <li><strong>Images:</strong> Glide</li>
+    <li><strong>Local persistence:</strong> SharedPreferences through TokenManager</li>
+  </ul>
+
+  <h2>4. Possible Frontend Questions With Good Answer Direction</h2>
+
+  <h3>1. Why did you choose native Android with Kotlin?</h3>
+  <p>
+    A good answer is that this is a mobile development course, so native Android is a direct fit. Kotlin is the standard
+    modern Android language and works very well with ViewModel, LiveData, Fragments, RecyclerView, and coroutines.
+    It also let the team build the app with reliable Android patterns instead of introducing extra complexity from a cross-platform stack.
+  </p>
+  <p>
+    The deeper explanation is that the choice matched the project requirements and reduced implementation risk. You were building an Android app,
+    so using Android-native tools made the architecture cleaner and easier to defend academically.
+  </p>
+
+  <h3>2. Why did you use XML layouts instead of Jetpack Compose?</h3>
+  <p>
+    A strong answer is that XML is still a stable and common Android UI approach, and the team wanted a predictable implementation path.
+    Since the project already required many screens and flows, XML plus ViewBinding was a safer choice for consistency and delivery.
+  </p>
+  <p>
+    The important point is not that Compose is bad. The point is that XML matched the team’s familiarity and the project timeline,
+    so it was a deliberate scope decision rather than a random choice.
+  </p>
+
+  <h3>3. What is your frontend architecture?</h3>
+  <p>
+    The app uses a layered Android architecture. Activities are used for high-level flows like login and the main app shell.
+    Fragments represent feature screens such as Markets, Watchlist, My Bets, Leaderboard, and Profile. Each feature has its own ViewModel
+    that exposes data using LiveData. Repositories handle communication with the backend through Retrofit.
+  </p>
+  <p>
+    The deeper explanation is separation of concerns. UI classes render and react to user input, ViewModels hold state and logic,
+    and repositories handle data access. This makes the code easier to organize and maintain.
+  </p>
+
+  <h3>4. Why did you use Fragments inside MainActivity?</h3>
+  <p>
+    The main app has multiple sections that all belong to the same authenticated experience. Using one MainActivity with multiple Fragments
+    avoids duplicating the toolbar and bottom navigation for every screen. It also makes tab-based navigation more natural.
+  </p>
+  <p>
+    This is a strong mobile answer because it shows that Fragments are being used for screen modularity inside one navigation shell,
+    which is a common Android design pattern.
+  </p>
+
+  <h3>5. Why did you use ViewModel and LiveData?</h3>
+  <p>
+    ViewModel keeps screen logic out of the Fragment and survives configuration-related recreation better than putting everything directly in the UI class.
+    LiveData lets the UI observe state changes such as loading, success, and error without manually polling for updates.
+  </p>
+  <p>
+    The deeper explanation is lifecycle awareness. Android screens are affected by lifecycle changes, so architecture components help prevent
+    tangled code and make state handling more predictable.
+  </p>
+
+  <h3>6. Why not put the network calls directly inside the Fragment?</h3>
+  <p>
+    Putting network calls directly in the Fragment would tightly couple rendering logic with data-fetching logic. That usually makes the screen harder
+    to test, harder to maintain, and harder to reason about. By using repositories and ViewModels, the code is cleaner and each layer has a clearer responsibility.
+  </p>
+
+  <h3>7. How do you handle loading, error, empty, and success states?</h3>
+  <p>
+    The app uses a Resource wrapper to represent common request states. Screens observe Resource values and switch the UI between progress bars,
+    content, empty-state messages, and retry/error views. This pattern is used across markets, bets, watchlist, leaderboard, and profile.
+  </p>
+  <p>
+    The explanation to emphasize is usability. A good mobile interface should always tell the user what is happening instead of leaving the screen blank or confusing.
+  </p>
+
+  <h3>8. How does the search feature work?</h3>
+  <p>
+    On the Markets screen, user input is observed and sent to the ViewModel. The ViewModel applies a short debounce before making the request.
+    That prevents a new API call from being sent on every single keystroke.
+  </p>
+  <p>
+    The in-depth explanation is performance and efficiency. Debouncing reduces unnecessary API traffic, lowers backend load, and avoids visual jitter on the UI.
+  </p>
+
+  <h3>9. Why did you include sorting and category filtering?</h3>
+  <p>
+    Markets can become hard to browse if they are only displayed as one long list. Sorting and category filtering improve discoverability and help users
+    quickly find relevant markets. From a mobile UX perspective, this reduces friction and makes the screen more usable.
+  </p>
+
+  <h3>10. How do you handle lists efficiently on Android?</h3>
+  <p>
+    The app uses RecyclerView for lists and ListAdapter with DiffUtil for efficient updates. Instead of rebuilding the entire list every time something changes,
+    DiffUtil compares old and new data and updates only the changed items.
+  </p>
+  <p>
+    This is especially important here because market prices can update in real time. Efficient list updates help keep scrolling smooth and avoid unnecessary redraws.
+  </p>
+
+  <h3>11. Why did you use Glide?</h3>
+  <p>
+    Glide handles asynchronous image loading and caching for market images. This keeps image work off the main thread and prevents the UI from freezing.
+    It also gives a fallback when an image is missing.
+  </p>
+  <p>
+    The important explanation is that image loading seems small, but on mobile it matters a lot for smoothness, memory handling, and visual reliability.
+  </p>
+
+  <h3>12. How is authentication handled on the frontend?</h3>
+  <p>
+    After login or registration, the app stores the token and user info locally using SharedPreferences through TokenManager.
+    Then Retrofit uses an OkHttp interceptor to automatically attach the bearer token to future requests.
+  </p>
+  <p>
+    The deeper explanation is that this centralizes authentication behavior. Instead of manually adding headers everywhere,
+    one interceptor applies it consistently across protected requests.
+  </p>
+
+  <h3>13. Why did you use SharedPreferences for token storage?</h3>
+  <p>
+    A good answer is that for a course project, SharedPreferences is simple and practical for lightweight local persistence.
+    It is enough to keep the user logged in and retain key session data like token, email, and balance.
+  </p>
+  <p>
+    If they want a deeper answer, mention the tradeoff: for production, more secure storage such as encrypted storage would be a better choice,
+    but for this scope, SharedPreferences was acceptable and faster to implement.
+  </p>
+
+  <h3>14. How do real-time updates work in the app?</h3>
+  <p>
+    The app connects to the backend socket in MainActivity and listens for odds updates and market resolution events.
+    Relevant screens subscribe when active, and when a new event arrives, the updated prices are pushed into observed UI state so the screen refreshes.
+  </p>
+  <p>
+    The important mobile explanation is lifecycle management. Real-time listeners should be attached and removed carefully so you do not create duplicate listeners,
+    stale updates, or memory issues.
+  </p>
+
+  <h3>15. Why do you start and stop socket observation with the screen lifecycle?</h3>
+  <p>
+    Because mobile screens are not always visible. If listeners keep running when a screen is paused or destroyed, they can waste resources,
+    deliver updates to the wrong place, or create duplicate callbacks later. Tying them to lifecycle events keeps behavior cleaner and safer.
+  </p>
+
+  <h3>16. How do you validate user input on the bet screen?</h3>
+  <p>
+    The detail screen checks that the amount is present and greater than zero, and it also ensures a valid side is selected.
+    If the input is invalid, the UI shows an immediate error instead of sending a bad request silently.
+  </p>
+  <p>
+    The deeper explanation is that frontend validation improves usability and reduces avoidable backend errors.
+    It is not a replacement for backend validation, but it improves the user experience.
+  </p>
+
+  <h3>17. Why did you add a shares preview before placing the bet?</h3>
+  <p>
+    The preview helps the user understand what the entered amount means in terms of estimated shares and current price.
+    Since this is a market app, transparency matters. Users should understand the action before they submit it.
+  </p>
+  <p>
+    This is a strong UX answer because it shows you thought about clarity, not only raw functionality.
+  </p>
+
+  <h3>18. How is the balance kept updated in the UI?</h3>
+  <p>
+    The toolbar in MainActivity displays the balance. After a bet is placed or redeemed, the frontend updates the value immediately using the response returned
+    from the backend. The profile screen can also refresh the authoritative value from the server.
+  </p>
+  <p>
+    This shows a useful mobile pattern: provide immediate feedback after an action, while still supporting refresh from the backend for consistency.
+  </p>
+
+  <h3>19. What is the purpose of the watchlist from a frontend perspective?</h3>
+  <p>
+    The watchlist improves user flow by letting users mark relevant markets and return to them quickly. On the frontend,
+    it also shows how shared user state appears in multiple places: the market list, the detail screen, and the watchlist screen itself.
+  </p>
+
+  <h3>20. How do you handle navigation back from the detail screen?</h3>
+  <p>
+    The app opens the market detail as a Fragment transaction added to the back stack. That means the system back action can return the user to the market list.
+    This uses Android’s fragment navigation behavior rather than opening a completely separate activity.
+  </p>
+
+  <h3>21. What Android UI components are central in this app?</h3>
+  <p>
+    A strong answer would mention MaterialToolbar, BottomNavigationView, RecyclerView, SwipeRefreshLayout, TextInputLayout, ChipGroup,
+    MaterialButton, Snackbar, and Fragment containers. These components shape most of the app’s mobile interaction patterns.
+  </p>
+
+  <h3>22. How does ViewBinding help in this project?</h3>
+  <p>
+    ViewBinding gives type-safe references to XML views, so the code does not need repeated findViewById calls.
+    That reduces boilerplate and lowers the chance of referencing the wrong view id at runtime.
+  </p>
+
+  <h3>23. Why did you use Snackbar for feedback?</h3>
+  <p>
+    Snackbar is useful for short mobile feedback such as login errors, bet success, or redeem results because it is visible without taking the user away
+    from the current screen. It is lightweight and fits transactional UI actions well.
+  </p>
+
+  <h3>24. What would happen on poor network conditions?</h3>
+  <p>
+    The app should move into loading or error states and show retry behavior where implemented. From a frontend perspective,
+    this is why explicit error handling matters. Mobile apps operate in unstable network environments more often than desktop apps.
+  </p>
+
+  <h3>25. What are some mobile-specific improvements you would make next?</h3>
+  <p>
+    Good answers include stronger offline handling, more secure token storage, a clearer navigation component strategy,
+    better state sharing across screens, improved configuration-change resilience, a polished launcher icon, and more final build verification.
+  </p>
+  <p>
+    This answer is good because it shows that you understand both what the app already does and what a production-quality mobile app would still need.
+  </p>
+
+  <h2>5. Very Likely Short Questions They Might Ask Fast</h2>
+  <ul>
+    <li>Why Activity here and Fragment there?</li>
+    <li>Why ViewModel?</li>
+    <li>Why LiveData?</li>
+    <li>Why RecyclerView?</li>
+    <li>Why Retrofit?</li>
+    <li>Why SharedPreferences?</li>
+    <li>Why Socket.io?</li>
+    <li>How do you handle errors?</li>
+    <li>How do you handle loading?</li>
+    <li>How do you prevent too many search requests?</li>
+    <li>How do you update the UI after placing a bet?</li>
+    <li>How do you keep the user logged in?</li>
+    <li>How do you avoid freezing the UI thread?</li>
+    <li>Why XML and not Compose?</li>
+  </ul>
+
+  <h2>6. Best Way To Sound Strong In The Q&amp;A</h2>
+  <p>
+    When answering, do not just say what component you used. Say why you used it and what problem it solved.
+    For example, do not say only “we used ViewModel.” Say “we used ViewModel to separate screen state from UI code
+    and make lifecycle-related state handling cleaner.”
+  </p>
+  <p>
+    In a mobile development course, that kind of answer is stronger because it shows architectural reasoning, not just tool usage.
+  </p>
+
+  <h2>7. One Clean Final Project Explanation To Memorize</h2>
+  <div class="box">
+    <p>
+      BetNow is a native Android app for prediction markets. On the frontend, users can register or log in, browse markets,
+      search and filter them, open a market detail page, see live YES and NO prices, place bets, manage a watchlist,
+      review their own bets, redeem resolved bets, and monitor their balance and statistics. The frontend is built with Kotlin,
+      XML, Fragments, ViewModels, LiveData, Retrofit, RecyclerView, and Socket.io, with a focus on clear navigation, responsive UI updates,
+      and proper handling of loading, error, and empty states.
+    </p>
+  </div>
+</body>
+</html>
