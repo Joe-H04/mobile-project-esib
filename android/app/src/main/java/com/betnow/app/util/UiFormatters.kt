@@ -9,22 +9,16 @@ import kotlin.math.roundToInt
 
 object UiFormatters {
 
-    private val currencyFormatter: NumberFormat
-        get() = NumberFormat.getCurrencyInstance(Locale.US)
+    private val currencyFormat = NumberFormat.getCurrencyInstance(Locale.US)
+    private val dateFormat = DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a", Locale.US)
 
-    private val dateFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a", Locale.US)
+    fun currency(value: Double): String = currencyFormat.format(value)
 
-    fun currency(value: Double): String = currencyFormatter.format(value)
+    fun currencyFromString(value: String?): String =
+        value?.toDoubleOrNull()?.let(::currency) ?: value ?: currency(0.0)
 
-    fun currencyFromString(value: String?): String {
-        if (value.isNullOrBlank()) return currency(0.0)
-        return value.toDoubleOrNull()?.let(::currency) ?: value
-    }
-
-    fun cents(probability: Double): String {
-        val centsValue = (probability * 100).roundToInt().coerceIn(0, 100)
-        return "${centsValue}c"
-    }
+    fun cents(probability: Double): String =
+        "${(probability * 100).roundToInt().coerceIn(0, 100)}c"
 
     fun sidePrice(side: String, probability: Double): String =
         "${side.uppercase(Locale.US)} ${cents(probability)}"
@@ -34,13 +28,12 @@ object UiFormatters {
         return "${String.format(Locale.US, pattern, value)} shares"
     }
 
-    fun dateTime(isoValue: String?): String {
-        if (isoValue.isNullOrBlank()) return "Unknown date"
+    fun dateTime(iso: String?): String {
+        if (iso.isNullOrBlank()) return "Unknown date"
         return try {
-            val instant = Instant.parse(isoValue)
-            dateFormatter.format(instant.atZone(ZoneId.systemDefault()))
+            dateFormat.format(Instant.parse(iso).atZone(ZoneId.systemDefault()))
         } catch (_: Exception) {
-            isoValue
+            iso
         }
     }
 }

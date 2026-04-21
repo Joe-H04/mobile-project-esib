@@ -22,14 +22,14 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     val registerResult: LiveData<Resource<AuthResponse>> = _registerResult
 
     fun login(email: String, password: String) {
-        _loginResult.value = Resource.Loading()
+        _loginResult.value = Resource.Loading
         viewModelScope.launch {
             _loginResult.value = authRepo.login(email, password)
         }
     }
 
     fun register(email: String, password: String) {
-        _registerResult.value = Resource.Loading()
+        _registerResult.value = Resource.Loading
         viewModelScope.launch {
             _registerResult.value = authRepo.register(email, password)
         }

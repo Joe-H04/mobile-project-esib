@@ -36,18 +36,10 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.swipeRefresh.setOnRefreshListener { viewModel.load() }
-
         binding.supportButton.setOnClickListener {
             startActivity(Intent(requireContext(), SupportActivity::class.java))
         }
-
-        binding.logoutButton.setOnClickListener {
-            TokenManager.clear(requireContext())
-            startActivity(Intent(requireContext(), LoginActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            })
-            requireActivity().finish()
-        }
+        binding.logoutButton.setOnClickListener { logout() }
 
         viewModel.me.observe(viewLifecycleOwner) { result ->
             binding.swipeRefresh.isRefreshing = false
@@ -78,7 +70,6 @@ class ProfileFragment : Fragment() {
     }
 
     private fun renderStats(stats: UserStats) {
-        val ctx = requireContext()
         binding.betsCountText.text = stats.betsCount.toString()
         binding.openBetsText.text = stats.openBets.toString()
         binding.wageredText.text = UiFormatters.currency(stats.wagered)
@@ -86,8 +77,16 @@ class ProfileFragment : Fragment() {
         binding.winsText.text = stats.wins.toString()
         binding.profitText.text = UiFormatters.currency(stats.netProfit)
         binding.profitText.setTextColor(
-            ctx.getColor(if (stats.netProfit >= 0) R.color.yes_green else R.color.no_red)
+            requireContext().getColor(if (stats.netProfit >= 0) R.color.yes_green else R.color.no_red)
         )
+    }
+
+    private fun logout() {
+        TokenManager.clear(requireContext())
+        startActivity(Intent(requireContext(), LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
+        requireActivity().finish()
     }
 
     override fun onResume() {

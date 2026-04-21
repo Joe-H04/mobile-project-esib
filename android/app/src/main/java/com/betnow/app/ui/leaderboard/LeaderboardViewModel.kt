@@ -23,7 +23,7 @@ class LeaderboardViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun load() {
-        _entries.value = Resource.Loading()
+        _entries.value = Resource.Loading
         viewModelScope.launch {
             _entries.value = repo.getLeaderboard()
         }

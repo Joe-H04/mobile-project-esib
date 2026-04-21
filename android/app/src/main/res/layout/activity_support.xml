@@ -10,7 +10,8 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/surface"
+        android:background="@drawable/bg_toolbar"
+        android:elevation="0dp"
         app:navigationIcon="?attr/homeAsUpIndicator"
         app:title="@string/support_title"
         app:titleTextColor="@color/on_surface" />
@@ -62,17 +63,17 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/surface"
+        android:background="@drawable/bg_support_input_bar"
         android:orientation="horizontal"
         android:paddingHorizontal="12dp"
         android:paddingVertical="8dp"
         android:gravity="center_vertical">
 
         <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.BetNow.TextInputLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:boxBackgroundMode="outline"
             android:hint="@string/support_input_hint">
 
             <com.google.android.material.textfield.TextInputEditText

@@ -1,21 +1,33 @@
 package com.betnow.app.repository
 
+import com.betnow.app.data.local.CachedProfileEntity
+import com.betnow.app.data.local.ProfileDao
 import com.betnow.app.network.ApiService
 import com.betnow.app.network.models.MeResponse
 import com.betnow.app.util.Resource
+import com.betnow.app.util.apiCall
 
-class ProfileRepository(private val api: ApiService) {
+class ProfileRepository(
+    private val api: ApiService,
+    private val profileDao: ProfileDao,
+    private val currentUserId: () -> String?
+) {
 
     suspend fun getMe(): Resource<MeResponse> {
-        return try {
-            val response = api.getMe()
-            if (response.isSuccessful && response.body() != null) {
-                Resource.Success(response.body()!!)
-            } else {
-                Resource.Error("Failed to load profile")
+        val result = apiCall("Failed to load profile") { api.getMe() }
+        return when (result) {
+            is Resource.Success -> {
+                profileDao.upsert(CachedProfileEntity.from(result.data))
+                result
             }
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Network error")
+            is Resource.Error -> cachedOr(result)
+            Resource.Loading -> result
         }
+    }
+
+    private suspend fun cachedOr(error: Resource.Error): Resource<MeResponse> {
+        val userId = currentUserId() ?: return error
+        val cached = profileDao.getProfile(userId) ?: return error
+        return Resource.Success(cached.toMeResponse())
     }
 }

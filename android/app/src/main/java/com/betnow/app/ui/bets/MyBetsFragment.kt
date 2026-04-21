@@ -20,12 +20,10 @@ class MyBetsFragment : Fragment() {
     private var _binding: FragmentMyBetsBinding? = null
     private val binding get() = _binding!!
     private val viewModel: MyBetsViewModel by viewModels()
-    private lateinit var adapter: MyBetsAdapter
+    private val adapter = MyBetsAdapter { viewModel.redeem(it.id) }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentMyBetsBinding.inflate(inflater, container, false)
         return binding.root
@@ -34,19 +32,10 @@ class MyBetsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = MyBetsAdapter { bet ->
-            viewModel.redeem(bet.id)
-        }
         binding.betsRecycler.layoutManager = LinearLayoutManager(requireContext())
         binding.betsRecycler.adapter = adapter
-
-        binding.swipeRefresh.setOnRefreshListener {
-            viewModel.loadBets()
-        }
-
-        binding.retryButton.setOnClickListener {
-            viewModel.loadBets()
-        }
+        binding.swipeRefresh.setOnRefreshListener { viewModel.loadBets() }
+        binding.retryButton.setOnClickListener { viewModel.loadBets() }
 
         viewModel.bets.observe(viewLifecycleOwner) { result ->
             binding.swipeRefresh.isRefreshing = false
@@ -58,16 +47,12 @@ class MyBetsFragment : Fragment() {
                 }
                 is Resource.Success -> {
                     binding.progressBar.isVisible = false
-                    if (result.data.isEmpty()) {
-                        binding.betsRecycler.isVisible = false
-                        binding.emptyState.isVisible = true
-                        binding.emptyText.text = getString(R.string.no_bets)
-                        binding.retryButton.isVisible = false
-                    } else {
-                        binding.emptyState.isVisible = false
-                        binding.betsRecycler.isVisible = true
-                        adapter.submitList(result.data)
-                    }
+                    val empty = result.data.isEmpty()
+                    binding.betsRecycler.isVisible = !empty
+                    binding.emptyState.isVisible = empty
+                    binding.retryButton.isVisible = false
+                    binding.emptyText.text = getString(R.string.no_bets)
+                    if (!empty) adapter.submitList(result.data)
                 }
                 is Resource.Error -> {
                     binding.progressBar.isVisible = false
@@ -82,18 +67,11 @@ class MyBetsFragment : Fragment() {
 
         viewModel.redeemResult.observe(viewLifecycleOwner) { result ->
             when (result) {
-                null -> Unit
-                is Resource.Loading -> Unit
                 is Resource.Success -> {
                     (activity as? MainActivity)?.updateBalance(result.data.newBalance)
                     val msg = if (result.data.won) {
-                        getString(
-                            R.string.redeem_success_win,
-                            UiFormatters.currency(result.data.payout)
-                        )
-                    } else {
-                        getString(R.string.redeem_success_lose)
-                    }
+                        getString(R.string.redeem_success_win, UiFormatters.currency(result.data.payout))
+                    } else getString(R.string.redeem_success_lose)
                     Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
                     viewModel.clearRedeemResult()
                 }
@@ -101,6 +79,7 @@ class MyBetsFragment : Fragment() {
                     Snackbar.make(binding.root, result.message, Snackbar.LENGTH_LONG).show()
                     viewModel.clearRedeemResult()
                 }
+                else -> Unit
             }
         }
     }

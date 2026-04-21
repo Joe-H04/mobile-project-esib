@@ -15,7 +15,7 @@ import com.bumptech.glide.Glide
 class MarketListAdapter(
     private val onClick: (Market) -> Unit,
     private val onWatchlistToggle: (Market) -> Unit
-) : ListAdapter<Market, MarketListAdapter.ViewHolder>(MarketDiffCallback()) {
+) : ListAdapter<Market, MarketListAdapter.ViewHolder>(Diff) {
 
     private var watchlistIds: Set<String> = emptySet()
 
@@ -32,47 +32,37 @@ class MarketListAdapter(
             val ctx = binding.root.context
             binding.marketQuestion.text = market.question
 
-            val yesPrice = market.outcomePrices.getOrNull(0) ?: 0.5
-            val noPrice = market.outcomePrices.getOrNull(1) ?: 0.5
-            binding.yesPrice.text = UiFormatters.sidePrice("YES", yesPrice)
-            binding.noPrice.text = UiFormatters.sidePrice("NO", noPrice)
+            val yes = market.outcomePrices.getOrNull(0) ?: 0.5
+            val no = market.outcomePrices.getOrNull(1) ?: 0.5
+            binding.yesPrice.text = UiFormatters.sidePrice("YES", yes)
+            binding.noPrice.text = UiFormatters.sidePrice("NO", no)
             binding.marketVolume.text = ctx.getString(
-                R.string.market_volume_short,
-                UiFormatters.currencyFromString(market.volume)
+                R.string.market_volume_short, UiFormatters.currencyFromString(market.volume)
             )
 
-            if (!market.category.isNullOrBlank()) {
-                binding.categoryChip.text = market.category
-                binding.categoryChip.visibility = View.VISIBLE
-            } else {
-                binding.categoryChip.visibility = View.GONE
-            }
+            binding.categoryChip.visibility = if (market.category.isNullOrBlank()) View.GONE else View.VISIBLE
+            binding.categoryChip.text = market.category.orEmpty()
 
+            binding.resolvedBadge.visibility = if (market.resolved) View.VISIBLE else View.GONE
             if (market.resolved) {
-                binding.resolvedBadge.visibility = View.VISIBLE
-                binding.resolvedBadge.text = if (market.winningOutcome == "YES") {
-                    ctx.getString(R.string.market_resolved_yes)
-                } else {
-                    ctx.getString(R.string.market_resolved_no)
-                }
-            } else {
-                binding.resolvedBadge.visibility = View.GONE
+                binding.resolvedBadge.text = ctx.getString(
+                    if (market.winningOutcome == "YES") R.string.market_resolved_yes
+                    else R.string.market_resolved_no
+                )
             }
 
-            val isWatched = watchlistIds.contains(market.id)
+            val watched = market.id in watchlistIds
             binding.watchlistStar.setImageResource(
-                if (isWatched) R.drawable.ic_star_filled else R.drawable.ic_star_outline
+                if (watched) R.drawable.ic_star_filled else R.drawable.ic_star_outline
             )
             binding.watchlistStar.contentDescription = ctx.getString(
-                if (isWatched) R.string.remove_from_watchlist else R.string.add_to_watchlist
+                if (watched) R.string.remove_from_watchlist else R.string.add_to_watchlist
             )
             binding.watchlistStar.setOnClickListener { onWatchlistToggle(market) }
 
             if (market.image.isNotEmpty()) {
-                Glide.with(binding.marketImage)
-                    .load(market.image)
-                    .placeholder(R.drawable.ic_markets)
-                    .circleCrop()
+                Glide.with(binding.marketImage).load(market.image)
+                    .placeholder(R.drawable.ic_markets).centerCrop()
                     .into(binding.marketImage)
             } else {
                 binding.marketImage.setImageResource(R.drawable.ic_markets)
@@ -82,18 +72,12 @@ class MarketListAdapter(
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemMarketBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-        return ViewHolder(binding)
-    }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
+        ViewHolder(ItemMarketBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
-    }
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(getItem(position))
 
-    class MarketDiffCallback : DiffUtil.ItemCallback<Market>() {
+    private object Diff : DiffUtil.ItemCallback<Market>() {
         override fun areItemsTheSame(old: Market, new: Market) = old.id == new.id
         override fun areContentsTheSame(old: Market, new: Market) = old == new
     }

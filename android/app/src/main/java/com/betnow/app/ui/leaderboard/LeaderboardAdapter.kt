@@ -10,8 +10,7 @@ import com.betnow.app.databinding.ItemLeaderboardBinding
 import com.betnow.app.network.models.LeaderboardEntry
 import com.betnow.app.util.UiFormatters
 
-class LeaderboardAdapter :
-    ListAdapter<LeaderboardEntry, LeaderboardAdapter.ViewHolder>(Diff()) {
+class LeaderboardAdapter : ListAdapter<LeaderboardEntry, LeaderboardAdapter.ViewHolder>(Diff) {
 
     inner class ViewHolder(private val binding: ItemLeaderboardBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -21,29 +20,20 @@ class LeaderboardAdapter :
             binding.rankText.text = ctx.getString(R.string.leaderboard_rank, entry.rank)
             binding.emailText.text = entry.email
             binding.statsText.text = "${entry.betsCount} bets · wagered ${UiFormatters.currency(entry.wagered)}"
-            val profit = entry.netProfit
-            binding.profitText.text = UiFormatters.currency(profit)
+            binding.profitText.text = UiFormatters.currency(entry.netProfit)
             binding.profitText.setTextColor(
-                ctx.getColor(
-                    if (profit >= 0) R.color.yes_green else R.color.no_red
-                )
+                ctx.getColor(if (entry.netProfit >= 0) R.color.yes_green else R.color.no_red)
             )
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemLeaderboardBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-        return ViewHolder(binding)
-    }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
+        ViewHolder(ItemLeaderboardBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
-    }
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(getItem(position))
 
-    private class Diff : DiffUtil.ItemCallback<LeaderboardEntry>() {
-        override fun areItemsTheSame(o: LeaderboardEntry, n: LeaderboardEntry) = o.userId == n.userId
-        override fun areContentsTheSame(o: LeaderboardEntry, n: LeaderboardEntry) = o == n
+    private object Diff : DiffUtil.ItemCallback<LeaderboardEntry>() {
+        override fun areItemsTheSame(old: LeaderboardEntry, new: LeaderboardEntry) = old.userId == new.userId
+        override fun areContentsTheSame(old: LeaderboardEntry, new: LeaderboardEntry) = old == new
     }
 }

@@ -21,27 +21,14 @@ import kotlinx.coroutines.withContext
 class SupportActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySupportBinding
-    private lateinit var adapter: SupportAdapter
-    private var supportSocket: SupportSocket? = null
+    private val adapter = SupportAdapter()
     private val messages = mutableListOf<SupportMessage>()
+    private var supportSocket: SupportSocket? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySupportBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        binding.toolbar.setNavigationOnClickListener { finish() }
-
-        adapter = SupportAdapter()
-        binding.messagesRecycler.layoutManager = LinearLayoutManager(this).apply {
-            stackFromEnd = true
-        }
-        binding.messagesRecycler.adapter = adapter
-
-        binding.messageInput.doAfterTextChanged {
-            binding.sendButton.isEnabled = !it.isNullOrBlank()
-        }
-        binding.sendButton.setOnClickListener { sendCurrentInput() }
 
         val token = TokenManager.getToken(this)
         if (token == null) {
@@ -49,52 +36,50 @@ class SupportActivity : AppCompatActivity() {
             return
         }
 
+        binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.messagesRecycler.layoutManager = LinearLayoutManager(this).apply { stackFromEnd = true }
+        binding.messagesRecycler.adapter = adapter
+        binding.messageInput.doAfterTextChanged { binding.sendButton.isEnabled = !it.isNullOrBlank() }
+        binding.sendButton.setOnClickListener { sendCurrentInput() }
+
         connect(token)
         loadHistory()
     }
 
     private fun connect(token: String) {
-        val baseUrl = "http://10.0.2.2:3000"
         binding.statusText.text = getString(R.string.support_status_connecting)
-        val socket = SupportSocket(baseUrl, token)
-        supportSocket = socket
-        socket.onMessage { msg ->
-            runOnUiThread { appendMessage(msg) }
+        supportSocket = SupportSocket(RetrofitClient.BASE_URL.trimEnd('/'), token).apply {
+            onMessage { m -> runOnUiThread { appendMessage(m) } }
+            connect(
+                onReady = { history ->
+                    runOnUiThread {
+                        setMessages(history)
+                        binding.statusText.text = getString(R.string.support_status_online)
+                        binding.statusText.visibility = View.GONE
+                    }
+                },
+                onError = { err ->
+                    runOnUiThread {
+                        binding.statusText.text = getString(R.string.support_status_offline)
+                        binding.statusText.visibility = View.VISIBLE
+                        Snackbar.make(binding.root, err, Snackbar.LENGTH_SHORT).show()
+                    }
+                }
+            )
         }
-        socket.connect(
-            onReady = { history ->
-                runOnUiThread {
-                    setMessages(history)
-                    binding.statusText.text = getString(R.string.support_status_online)
-                    binding.statusText.visibility = View.GONE
-                }
-            },
-            onError = { err ->
-                runOnUiThread {
-                    binding.statusText.text = getString(R.string.support_status_offline)
-                    binding.statusText.visibility = View.VISIBLE
-                    Snackbar.make(binding.root, err, Snackbar.LENGTH_SHORT).show()
-                }
-            }
-        )
     }
 
     private fun loadHistory() {
         binding.progressBar.isVisible = messages.isEmpty()
         lifecycleScope.launch {
-            try {
-                val response = withContext(Dispatchers.IO) {
+            val history = runCatching {
+                withContext(Dispatchers.IO) {
                     RetrofitClient.getApiService(applicationContext).getSupportHistory()
                 }
-                if (response.isSuccessful) {
-                    val history = response.body()?.messages.orEmpty()
-                    if (messages.isEmpty()) setMessages(history)
-                }
-            } catch (_: Exception) {
-                // socket will still deliver history on auth; ignore REST failures
-            } finally {
-                binding.progressBar.isVisible = false
-            }
+            }.getOrNull()?.takeIf { it.isSuccessful }?.body()?.messages
+
+            if (history != null && messages.isEmpty()) setMessages(history)
+            binding.progressBar.isVisible = false
         }
     }
 
@@ -132,11 +117,7 @@ class SupportActivity : AppCompatActivity() {
                     binding.messageInput.setText("")
                 } else {
                     binding.sendButton.isEnabled = true
-                    Snackbar.make(
-                        binding.root,
-                        err ?: "Failed to send",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
+                    Snackbar.make(binding.root, err ?: "Failed to send", Snackbar.LENGTH_SHORT).show()
                 }
             }
         }

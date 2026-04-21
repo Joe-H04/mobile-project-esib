@@ -8,5 +8,14 @@
         <item name="android:colorBackground">@color/background</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorOnSurface">@color/on_surface</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="bottomNavigationStyle">@style/Widget.BetNow.BottomNavigationView</item>
+        <item name="chipStyle">@style/Widget.BetNow.Chip.Choice</item>
+        <item name="materialButtonStyle">@style/Widget.BetNow.Button</item>
+        <item name="materialCardViewStyle">@style/Widget.BetNow.Card</item>
+        <item name="textInputStyle">@style/Widget.BetNow.TextInputLayout</item>
     </style>
 </resources>

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@color/background">
+    android:background="@drawable/bg_app_background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,13 +22,14 @@
             android:textStyle="bold"
             android:textColor="@color/primary"
             android:layout_marginTop="64dp"
+            android:gravity="center"
             android:layout_marginBottom="48dp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            style="@style/Widget.BetNow.TextInputLayout">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/email_input"
@@ -43,7 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            style="@style/Widget.BetNow.TextInputLayout"
             app:endIconMode="password_toggle">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -59,7 +60,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            style="@style/Widget.BetNow.TextInputLayout"
             app:endIconMode="password_toggle">
 
             <com.google.android.material.textfield.TextInputEditText

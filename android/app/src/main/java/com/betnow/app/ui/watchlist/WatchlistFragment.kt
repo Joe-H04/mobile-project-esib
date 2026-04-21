@@ -33,24 +33,13 @@ class WatchlistFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = MarketListAdapter(
-            onClick = { market ->
-                val fragment = MarketDetailFragment.newInstance(market.id)
-                parentFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, fragment)
-                    .addToBackStack(null)
-                    .commit()
-            },
-            onWatchlistToggle = { market ->
-                viewModel.remove(market)
-            }
+            onClick = { openDetail(it.id) },
+            onWatchlistToggle = { viewModel.remove(it) }
         )
 
         binding.watchlistRecycler.layoutManager = LinearLayoutManager(requireContext())
         binding.watchlistRecycler.adapter = adapter
-
-        binding.swipeRefresh.setOnRefreshListener {
-            viewModel.loadWatchlist()
-        }
+        binding.swipeRefresh.setOnRefreshListener { viewModel.loadWatchlist() }
 
         viewModel.markets.observe(viewLifecycleOwner) { result ->
             binding.swipeRefresh.isRefreshing = false
@@ -62,16 +51,11 @@ class WatchlistFragment : Fragment() {
                 }
                 is Resource.Success -> {
                     binding.progressBar.isVisible = false
-                    val ids = result.data.map { it.id }.toSet()
-                    adapter.setWatchlistIds(ids)
-                    if (result.data.isEmpty()) {
-                        binding.watchlistRecycler.isVisible = false
-                        binding.emptyState.isVisible = true
-                    } else {
-                        binding.emptyState.isVisible = false
-                        binding.watchlistRecycler.isVisible = true
-                        adapter.submitList(result.data)
-                    }
+                    adapter.setWatchlistIds(result.data.map { it.id }.toSet())
+                    val empty = result.data.isEmpty()
+                    binding.watchlistRecycler.isVisible = !empty
+                    binding.emptyState.isVisible = empty
+                    if (!empty) adapter.submitList(result.data)
                 }
                 is Resource.Error -> {
                     binding.progressBar.isVisible = false
@@ -82,6 +66,13 @@ class WatchlistFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun openDetail(marketId: String) {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, MarketDetailFragment.newInstance(marketId))
+            .addToBackStack(null)
+            .commit()
     }
 
     override fun onResume() {

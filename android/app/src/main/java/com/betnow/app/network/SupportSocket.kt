@@ -18,21 +18,18 @@ class SupportSocket(
         onReady: (List<SupportMessage>) -> Unit,
         onError: (String) -> Unit
     ) {
-        val options = IO.Options().apply {
+        val s = IO.socket(serverUrl, IO.Options().apply {
             transports = arrayOf("polling", "websocket")
             reconnection = true
             forceNew = true
-        }
-        val s = IO.socket(serverUrl, options)
+        })
         socket = s
 
         s.on(Socket.EVENT_CONNECT) {
-            val payload = JSONObject().put("token", token)
-            s.emit("support:auth", payload, Ack { args ->
+            s.emit("support:auth", JSONObject().put("token", token), Ack { args ->
                 val res = args.firstOrNull() as? JSONObject
-                if (res != null && res.optBoolean("ok")) {
-                    val history = parseMessages(res.optJSONArray("messages"))
-                    onReady(history)
+                if (res?.optBoolean("ok") == true) {
+                    onReady(res.optJSONArray("messages").toMessages())
                 } else {
                     onError(res?.optString("error") ?: "Auth failed")
                 }
@@ -40,14 +37,12 @@ class SupportSocket(
         }
 
         s.on("support:message") { args ->
-            val event = args.firstOrNull() as? JSONObject ?: return@on
-            val msgJson = event.optJSONObject("message") ?: return@on
-            messageListener?.invoke(parseMessage(msgJson))
+            val msgJson = (args.firstOrNull() as? JSONObject)?.optJSONObject("message") ?: return@on
+            messageListener?.invoke(msgJson.toMessage())
         }
 
         s.on(Socket.EVENT_CONNECT_ERROR) { args ->
-            val err = args.firstOrNull()?.toString() ?: "Connection error"
-            onError(err)
+            onError(args.firstOrNull()?.toString() ?: "Connection error")
         }
 
         s.connect()
@@ -59,10 +54,9 @@ class SupportSocket(
 
     fun send(text: String, onResult: (Boolean, String?) -> Unit) {
         val s = socket ?: return onResult(false, "Not connected")
-        val payload = JSONObject().put("text", text)
-        s.emit("support:send", payload, Ack { args ->
+        s.emit("support:send", JSONObject().put("text", text), Ack { args ->
             val res = args.firstOrNull() as? JSONObject
-            if (res != null && res.optBoolean("ok")) onResult(true, null)
+            if (res?.optBoolean("ok") == true) onResult(true, null)
             else onResult(false, res?.optString("error") ?: "Send failed")
         })
     }
@@ -73,21 +67,16 @@ class SupportSocket(
         socket = null
         messageListener = null
     }
-
-    private fun parseMessages(array: JSONArray?): List<SupportMessage> {
-        if (array == null) return emptyList()
-        val out = mutableListOf<SupportMessage>()
-        for (i in 0 until array.length()) {
-            val obj = array.optJSONObject(i) ?: continue
-            out.add(parseMessage(obj))
-        }
-        return out
-    }
-
-    private fun parseMessage(obj: JSONObject): SupportMessage = SupportMessage(
-        id = obj.optString("id"),
-        from = obj.optString("from"),
-        text = obj.optString("text"),
-        ts = obj.optString("ts")
-    )
 }
+
+private fun JSONArray?.toMessages(): List<SupportMessage> {
+    if (this == null) return emptyList()
+    return List(length()) { optJSONObject(it)?.toMessage() }.filterNotNull()
+}
+
+private fun JSONObject.toMessage() = SupportMessage(
+    id = optString("id"),
+    from = optString("from"),
+    text = optString("text"),
+    ts = optString("ts")
+)

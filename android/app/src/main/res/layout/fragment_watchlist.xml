@@ -3,7 +3,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/swipe_refresh"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/background">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -14,7 +15,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:padding="8dp" />
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="8dp" />
 
         <ProgressBar
             android:id="@+id/progress_bar"

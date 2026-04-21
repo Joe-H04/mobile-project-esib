@@ -1,48 +1,36 @@
 package com.betnow.app.util
 
 import android.content.Context
-import android.content.SharedPreferences
+import androidx.core.content.edit
 
 object TokenManager {
 
-    private const val PREF_NAME = "betnow_prefs"
+    private const val PREFS = "betnow_prefs"
     private const val KEY_TOKEN = "jwt_token"
     private const val KEY_USER_ID = "user_id"
     private const val KEY_USER_EMAIL = "user_email"
-    private const val KEY_USER_BALANCE = "user_balance"
+    private const val KEY_BALANCE = "user_balance"
 
-    private fun prefs(context: Context): SharedPreferences =
-        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+    private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
-    fun saveToken(context: Context, token: String) {
-        prefs(context).edit().putString(KEY_TOKEN, token).apply()
-    }
+    fun saveToken(context: Context, token: String) =
+        prefs(context).edit { putString(KEY_TOKEN, token) }
 
-    fun getToken(context: Context): String? =
-        prefs(context).getString(KEY_TOKEN, null)
+    fun saveUser(context: Context, id: String, email: String, balance: Double) =
+        prefs(context).edit {
+            putString(KEY_USER_ID, id)
+            putString(KEY_USER_EMAIL, email)
+            putFloat(KEY_BALANCE, balance.toFloat())
+        }
 
-    fun saveUser(context: Context, id: String, email: String, balance: Double) {
-        prefs(context).edit()
-            .putString(KEY_USER_ID, id)
-            .putString(KEY_USER_EMAIL, email)
-            .putFloat(KEY_USER_BALANCE, balance.toFloat())
-            .apply()
-    }
+    fun updateBalance(context: Context, balance: Double) =
+        prefs(context).edit { putFloat(KEY_BALANCE, balance.toFloat()) }
 
-    fun getBalance(context: Context): Double =
-        prefs(context).getFloat(KEY_USER_BALANCE, 0f).toDouble()
+    fun getToken(context: Context): String? = prefs(context).getString(KEY_TOKEN, null)
+    fun getUserId(context: Context): String? = prefs(context).getString(KEY_USER_ID, null)
+    fun getUserEmail(context: Context): String? = prefs(context).getString(KEY_USER_EMAIL, null)
+    fun getBalance(context: Context): Double = prefs(context).getFloat(KEY_BALANCE, 0f).toDouble()
+    fun isLoggedIn(context: Context): Boolean = getToken(context) != null
 
-    fun updateBalance(context: Context, newBalance: Double) {
-        prefs(context).edit().putFloat(KEY_USER_BALANCE, newBalance.toFloat()).apply()
-    }
-
-    fun getUserEmail(context: Context): String? =
-        prefs(context).getString(KEY_USER_EMAIL, null)
-
-    fun isLoggedIn(context: Context): Boolean =
-        getToken(context) != null
-
-    fun clear(context: Context) {
-        prefs(context).edit().clear().apply()
-    }
+    fun clear(context: Context) = prefs(context).edit { clear() }
 }

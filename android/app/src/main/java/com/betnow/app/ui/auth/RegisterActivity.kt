@@ -21,53 +21,43 @@ class RegisterActivity : AppCompatActivity() {
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.registerButton.setOnClickListener {
-            val email = binding.emailInput.text.toString().trim()
-            val password = binding.passwordInput.text.toString()
-            val confirmPassword = binding.confirmPasswordInput.text.toString()
-
-            if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-                Snackbar.make(binding.root, "Please fill in all fields", Snackbar.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            if (password.length < 6) {
-                Snackbar.make(binding.root, "Password must be at least 6 characters", Snackbar.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            if (password != confirmPassword) {
-                Snackbar.make(binding.root, "Passwords do not match", Snackbar.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            viewModel.register(email, password)
-        }
-
-        binding.loginLink.setOnClickListener {
-            finish()
-        }
+        binding.registerButton.setOnClickListener { submit() }
+        binding.loginLink.setOnClickListener { finish() }
 
         viewModel.registerResult.observe(this) { result ->
+            val loading = result is Resource.Loading
+            binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE
+            binding.registerButton.isEnabled = !loading
             when (result) {
-                is Resource.Loading -> {
-                    binding.progressBar.visibility = View.VISIBLE
-                    binding.registerButton.isEnabled = false
-                }
                 is Resource.Success -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.registerButton.isEnabled = true
-                    val data = result.data
-                    TokenManager.saveToken(this, data.token)
-                    TokenManager.saveUser(this, data.user.id, data.user.email, data.user.balance)
+                    TokenManager.saveToken(this, result.data.token)
+                    TokenManager.saveUser(this, result.data.user.id, result.data.user.email, result.data.user.balance)
                     startActivity(Intent(this, MainActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     })
                     finish()
                 }
-                is Resource.Error -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.registerButton.isEnabled = true
-                    Snackbar.make(binding.root, result.message, Snackbar.LENGTH_LONG).show()
-                }
+                is Resource.Error -> Snackbar.make(binding.root, result.message, Snackbar.LENGTH_LONG).show()
+                Resource.Loading -> Unit
             }
         }
+    }
+
+    private fun submit() {
+        val email = binding.emailInput.text.toString().trim()
+        val password = binding.passwordInput.text.toString()
+        val confirm = binding.confirmPasswordInput.text.toString()
+
+        val error = when {
+            email.isEmpty() || password.isEmpty() || confirm.isEmpty() -> "Please fill in all fields"
+            password.length < 6 -> "Password must be at least 6 characters"
+            password != confirm -> "Passwords do not match"
+            else -> null
+        }
+        if (error != null) {
+            Snackbar.make(binding.root, error, Snackbar.LENGTH_SHORT).show()
+            return
+        }
+        viewModel.register(email, password)
     }
 }

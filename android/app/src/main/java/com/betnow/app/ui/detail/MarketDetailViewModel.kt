@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.betnow.app.network.RetrofitClient
+import com.betnow.app.network.SocketManager
 import com.betnow.app.network.models.Market
 import com.betnow.app.network.models.PlaceBetResponse
 import com.betnow.app.repository.BetRepository
@@ -27,67 +28,55 @@ class MarketDetailViewModel(application: Application) : AndroidViewModel(applica
     private val _betResult = MutableLiveData<Resource<PlaceBetResponse>?>()
     val betResult: LiveData<Resource<PlaceBetResponse>?> = _betResult
 
-    private val _isWatching = MutableLiveData<Boolean>(false)
+    private val _isWatching = MutableLiveData(false)
     val isWatching: LiveData<Boolean> = _isWatching
 
     fun loadMarket(marketId: String) {
-        _market.value = Resource.Loading()
+        _market.value = Resource.Loading
         viewModelScope.launch {
             _market.value = marketRepo.getMarket(marketId)
-            refreshWatchingState(marketId)
-        }
-    }
-
-    private suspend fun refreshWatchingState(marketId: String) {
-        val result = watchlistRepo.getWatchlist()
-        if (result is Resource.Success) {
-            _isWatching.postValue(result.data.any { it.id == marketId })
-        }
-    }
-
-    fun toggleWatchlist(marketId: String) {
-        val watching = _isWatching.value == true
-        viewModelScope.launch {
-            val result = if (watching) watchlistRepo.remove(marketId)
-                         else watchlistRepo.add(marketId)
-            if (result is Resource.Success) {
-                _isWatching.postValue(result.data)
+            val watchlist = watchlistRepo.getWatchlist()
+            if (watchlist is Resource.Success) {
+                _isWatching.postValue(watchlist.data.any { it.id == marketId })
             }
         }
     }
 
+    fun toggleWatchlist(marketId: String) {
+        viewModelScope.launch {
+            val result = if (_isWatching.value == true) watchlistRepo.remove(marketId)
+                         else watchlistRepo.add(marketId)
+            if (result is Resource.Success) _isWatching.postValue(result.data)
+        }
+    }
+
     fun placeBet(marketId: String, side: String, amount: Double) {
-        _betResult.value = Resource.Loading()
+        _betResult.value = Resource.Loading
         viewModelScope.launch {
             _betResult.value = betRepo.placeBet(marketId, side, amount)
         }
     }
 
     fun observePriceUpdates(marketId: String) {
-        marketRepo.observeOddsUpdates { updatedId, newPrices ->
-            if (updatedId == marketId) {
-                val current = (_market.value as? Resource.Success)?.data ?: return@observeOddsUpdates
-                _market.postValue(Resource.Success(current.copy(outcomePrices = newPrices)))
-            }
+        SocketManager.onOddsUpdate { id, prices ->
+            if (id == marketId) updateMarket { it.copy(outcomePrices = prices) }
         }
-        marketRepo.observeMarketResolved { resolvedId, winningOutcome ->
-            if (resolvedId == marketId) {
-                val current = (_market.value as? Resource.Success)?.data ?: return@observeMarketResolved
-                _market.postValue(
-                    Resource.Success(
-                        current.copy(resolved = true, winningOutcome = winningOutcome)
-                    )
-                )
-            }
+        SocketManager.onMarketResolved { id, winningOutcome ->
+            if (id == marketId) updateMarket { it.copy(resolved = true, winningOutcome = winningOutcome) }
         }
     }
 
     fun stopPriceUpdates() {
-        marketRepo.stopObservingOddsUpdates()
-        marketRepo.stopObservingMarketResolved()
+        SocketManager.off("odds-update")
+        SocketManager.off("market-resolved")
     }
 
     fun clearBetResult() {
         _betResult.value = null
+    }
+
+    private fun updateMarket(transform: (Market) -> Market) {
+        val current = (_market.value as? Resource.Success)?.data ?: return
+        _market.postValue(Resource.Success(transform(current)))
     }
 }

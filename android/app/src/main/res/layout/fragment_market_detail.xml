@@ -22,6 +22,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="180dp"
                 android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_category_label"
+                android:clipToOutline="true"
                 android:contentDescription="@string/market_image_content_description"
                 android:scaleType="centerCrop" />
 
@@ -55,7 +57,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:background="@color/primary"
+                android:background="@drawable/bg_resolved_badge"
                 android:gravity="center"
                 android:padding="8dp"
                 android:textColor="@color/on_primary"
@@ -156,14 +158,14 @@
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_yes"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    style="@style/Widget.BetNow.Chip.Choice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="YES" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_no"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    style="@style/Widget.BetNow.Chip.Choice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="NO" />
@@ -172,7 +174,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/amount_input_layout"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.BetNow.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp">
@@ -263,7 +265,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/retry_button"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.BetNow.Button.Outlined"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"

@@ -27,14 +27,14 @@ class MyBetsViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun loadBets() {
-        _bets.value = Resource.Loading()
+        _bets.value = Resource.Loading
         viewModelScope.launch {
             _bets.value = betRepository.getMyBets()
         }
     }
 
     fun redeem(betId: String) {
-        _redeemResult.value = Resource.Loading()
+        _redeemResult.value = Resource.Loading
         viewModelScope.launch {
             val result = betRepository.redeemBet(betId)
             _redeemResult.value = result

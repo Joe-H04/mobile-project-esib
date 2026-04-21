@@ -1,15 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#1B5E20</color>
-    <color name="primary_variant">#2E7D32</color>
+    <color name="primary">#0F766E</color>
+    <color name="primary_variant">#0B5E55</color>
     <color name="on_primary">#FFFFFF</color>
-    <color name="secondary">#FF6F00</color>
-    <color name="background">#FAFAFA</color>
+    <color name="secondary">#2563EB</color>
+    <color name="background">#F5F7FA</color>
     <color name="surface">#FFFFFF</color>
-    <color name="on_surface">#212121</color>
-    <color name="yes_green">#2E7D32</color>
-    <color name="yes_green_bg">#E8F5E9</color>
-    <color name="no_red">#C62828</color>
-    <color name="no_red_bg">#FFEBEE</color>
-    <color name="text_secondary">#757575</color>
+    <color name="surface_variant">#EEF2F6</color>
+    <color name="on_surface">#111827</color>
+    <color name="on_surface_variant">#374151</color>
+    <color name="yes_green">#047857</color>
+    <color name="yes_green_bg">#DCFCE7</color>
+    <color name="yes_green_border">#86EFAC</color>
+    <color name="no_red">#DC2626</color>
+    <color name="no_red_bg">#FEE2E2</color>
+    <color name="no_red_border">#FCA5A5</color>
+    <color name="text_secondary">#6B7280</color>
+    <color name="divider">#E5E7EB</color>
+    <color name="outline">#CBD5E1</color>
+    <color name="nav_selected_background">#E0F2F1</color>
 </resources>

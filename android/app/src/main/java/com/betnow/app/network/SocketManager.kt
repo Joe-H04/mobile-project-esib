@@ -2,6 +2,7 @@ package com.betnow.app.network
 
 import io.socket.client.IO
 import io.socket.client.Socket
+import org.json.JSONArray
 import org.json.JSONObject
 
 object SocketManager {
@@ -10,14 +11,11 @@ object SocketManager {
     private var socket: Socket? = null
 
     fun connect() {
-        if (socket == null) {
-            val options = IO.Options().apply {
-                transports = arrayOf("websocket")
-                reconnection = true
-            }
-            socket = IO.socket(SERVER_URL, options)
-        }
-        socket?.connect()
+        val s = socket ?: IO.socket(SERVER_URL, IO.Options().apply {
+            transports = arrayOf("websocket")
+            reconnection = true
+        }).also { socket = it }
+        s.connect()
     }
 
     fun disconnect() {
@@ -26,35 +24,22 @@ object SocketManager {
 
     fun onOddsUpdate(callback: (marketId: String, prices: List<Double>) -> Unit) {
         socket?.on("odds-update") { args ->
-            if (args.isNotEmpty()) {
-                val data = args[0] as JSONObject
-                val marketId = data.getString("marketId")
-                val pricesArray = data.getJSONArray("outcomePrices")
-                val prices = mutableListOf<Double>()
-                for (i in 0 until pricesArray.length()) {
-                    prices.add(pricesArray.getDouble(i))
-                }
-                callback(marketId, prices)
-            }
+            val data = args.firstOrNull() as? JSONObject ?: return@on
+            callback(data.getString("marketId"), data.getJSONArray("outcomePrices").toDoubleList())
         }
-    }
-
-    fun removeOddsUpdateListener() {
-        socket?.off("odds-update")
     }
 
     fun onMarketResolved(callback: (marketId: String, winningOutcome: String) -> Unit) {
         socket?.on("market-resolved") { args ->
-            if (args.isNotEmpty()) {
-                val data = args[0] as JSONObject
-                val marketId = data.getString("marketId")
-                val winningOutcome = data.optString("winningOutcome", "")
-                callback(marketId, winningOutcome)
-            }
+            val data = args.firstOrNull() as? JSONObject ?: return@on
+            callback(data.getString("marketId"), data.optString("winningOutcome", ""))
         }
     }
 
-    fun removeMarketResolvedListener() {
-        socket?.off("market-resolved")
+    fun off(event: String) {
+        socket?.off(event)
     }
 }
+
+private fun JSONArray.toDoubleList(): List<Double> =
+    List(length()) { getDouble(it) }

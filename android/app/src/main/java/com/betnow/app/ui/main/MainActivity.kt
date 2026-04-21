@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import com.betnow.app.R
 import com.betnow.app.databinding.ActivityMainBinding
 import com.betnow.app.network.SocketManager
@@ -26,55 +27,31 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.toolbar.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.action_logout -> {
-                    TokenManager.clear(this)
-                    startActivity(Intent(this, LoginActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    })
-                    finish()
-                    true
-                }
-                else -> false
-            }
+            if (item.itemId == R.id.action_logout) {
+                logout(); true
+            } else false
         }
-
         binding.toolbar.subtitle = UiFormatters.currency(TokenManager.getBalance(this))
-        binding.toolbar.setSubtitleTextColor(resources.getColor(R.color.on_primary, theme))
+        binding.toolbar.setSubtitleTextColor(resources.getColor(R.color.primary, theme))
 
         binding.bottomNav.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_markets -> {
-                    loadFragment(MarketListFragment())
-                    true
-                }
-                R.id.nav_watchlist -> {
-                    loadFragment(WatchlistFragment())
-                    true
-                }
-                R.id.nav_bets -> {
-                    loadFragment(MyBetsFragment())
-                    true
-                }
-                R.id.nav_leaderboard -> {
-                    loadFragment(LeaderboardFragment())
-                    true
-                }
-                R.id.nav_profile -> {
-                    loadFragment(ProfileFragment())
-                    true
-                }
-                else -> false
+            val fragment = when (item.itemId) {
+                R.id.nav_markets -> MarketListFragment()
+                R.id.nav_watchlist -> WatchlistFragment()
+                R.id.nav_bets -> MyBetsFragment()
+                R.id.nav_leaderboard -> LeaderboardFragment()
+                R.id.nav_profile -> ProfileFragment()
+                else -> return@setOnItemSelectedListener false
             }
+            loadFragment(fragment)
+            true
         }
 
-        if (savedInstanceState == null) {
-            loadFragment(MarketListFragment())
-        }
+        if (savedInstanceState == null) loadFragment(MarketListFragment())
     }
 
     private fun loadFragment(fragment: Fragment) {
-        supportFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
             .commit()
@@ -83,6 +60,14 @@ class MainActivity : AppCompatActivity() {
     fun updateBalance(newBalance: Double) {
         TokenManager.updateBalance(this, newBalance)
         binding.toolbar.subtitle = UiFormatters.currency(newBalance)
+    }
+
+    private fun logout() {
+        TokenManager.clear(this)
+        startActivity(Intent(this, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
+        finish()
     }
 
     override fun onStart() {

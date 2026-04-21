@@ -7,6 +7,7 @@ import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -14,22 +15,21 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Locale
 import kotlin.coroutines.resume
 
+// Mirrors docs.polymarket.com/api-reference/geoblock. ISO 3166-1 alpha-2.
 object GeoRestrictionManager {
 
-    // Polymarket-equivalent blocklist (docs.polymarket.com/api-reference/geoblock).
-    // ISO 3166-1 alpha-2 codes.
     private val FULLY_BLOCKED = setOf(
         "AU", "BE", "BY", "BI", "CF", "CD", "CU", "DE", "ET", "FR",
         "GB", "IR", "IQ", "IT", "KP", "LB", "LY", "MM", "NI", "NL",
         "RU", "SO", "SS", "SD", "SY", "UM", "US", "VE", "YE", "ZW"
     )
-
-    // "Close-only" — treated as restricted for this simulation (no new bets).
     private val CLOSE_ONLY = setOf("PL", "SG", "TH", "TW")
 
-    private const val PREF_NAME = "betnow_geo"
-    private const val KEY_SIMULATED_COUNTRY = "simulated_country"
-    private const val KEY_LAST_COUNTRY = "last_country"
+    private const val PREFS = "betnow_geo"
+    private const val KEY_SIMULATED = "simulated_country"
+    private const val KEY_LAST = "last_country"
+    private const val LOCATION_TIMEOUT_MS = 5_000L
+    private const val LAST_KNOWN_MAX_AGE_MS = 30_000L
 
     sealed class Status {
         data class Allowed(val countryCode: String) : Status()
@@ -38,66 +38,48 @@ object GeoRestrictionManager {
         object LocationUnavailable : Status()
     }
 
-    fun setSimulatedCountry(context: Context, code: String?) {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        if (code.isNullOrBlank()) {
-            prefs.edit().remove(KEY_SIMULATED_COUNTRY).apply()
-        } else {
-            prefs.edit().putString(KEY_SIMULATED_COUNTRY, code.uppercase(Locale.US)).apply()
-        }
+    fun setSimulatedCountry(context: Context, code: String?) = prefs(context).edit {
+        if (code.isNullOrBlank()) remove(KEY_SIMULATED)
+        else putString(KEY_SIMULATED, code.uppercase(Locale.US))
     }
 
     fun getLastKnownCountry(context: Context): String? =
-        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-            .getString(KEY_LAST_COUNTRY, null)
+        prefs(context).getString(KEY_LAST, null)
 
     suspend fun check(context: Context): Status {
-        val simulated = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-            .getString(KEY_SIMULATED_COUNTRY, null)
-        if (!simulated.isNullOrBlank()) {
-            return classify(simulated)
+        prefs(context).getString(KEY_SIMULATED, null)?.takeIf { it.isNotBlank() }?.let {
+            return classify(it)
         }
-
         if (!hasLocationPermission(context)) return Status.PermissionMissing
 
-        val location = withTimeoutOrNull(5_000) { requestLocation(context) }
+        val location = withTimeoutOrNull(LOCATION_TIMEOUT_MS) { requestLocation(context) }
             ?: return Status.LocationUnavailable
 
-        val code = withContext(Dispatchers.IO) {
-            resolveCountry(context, location)
-        } ?: return Status.LocationUnavailable
+        val code = withContext(Dispatchers.IO) { resolveCountry(context, location) }
+            ?: return Status.LocationUnavailable
 
-        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-            .edit().putString(KEY_LAST_COUNTRY, code).apply()
-
+        prefs(context).edit { putString(KEY_LAST, code) }
         return classify(code)
     }
 
     fun classify(code: String): Status {
         val upper = code.uppercase(Locale.US)
-        return when {
-            FULLY_BLOCKED.contains(upper) -> Status.Blocked(upper, closeOnly = false)
-            CLOSE_ONLY.contains(upper) -> Status.Blocked(upper, closeOnly = true)
+        return when (upper) {
+            in FULLY_BLOCKED -> Status.Blocked(upper, closeOnly = false)
+            in CLOSE_ONLY -> Status.Blocked(upper, closeOnly = true)
             else -> Status.Allowed(upper)
         }
     }
 
-    private fun hasLocationPermission(context: Context): Boolean {
-        val coarse = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_COARSE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-        val fine = ContextCompat.checkSelfPermission(
-            context, Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-        return coarse || fine
-    }
+    private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
-    private const val LAST_KNOWN_MAX_AGE_MS = 30_000L
+    private fun hasLocationPermission(context: Context): Boolean =
+        listOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
+            .any { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }
 
-    @SuppressWarnings("MissingPermission")
+    @Suppress("MissingPermission")
     private suspend fun requestLocation(context: Context): Location? {
-        val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
-            ?: return null
+        val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return null
 
         val providers = listOf(
             LocationManager.GPS_PROVIDER,
@@ -106,30 +88,16 @@ object GeoRestrictionManager {
         ).filter { lm.isProviderEnabled(it) }
 
         val now = System.currentTimeMillis()
-        var freshest: Location? = null
-        for (provider in providers) {
-            try {
-                @Suppress("MissingPermission")
-                val last = lm.getLastKnownLocation(provider) ?: continue
-                if (now - last.time <= LAST_KNOWN_MAX_AGE_MS &&
-                    (freshest == null || last.time > freshest.time)
-                ) {
-                    freshest = last
-                }
-            } catch (_: SecurityException) {
-                return null
-            }
-        }
-        if (freshest != null) return freshest
+        providers.mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }
+            .filter { now - it.time <= LAST_KNOWN_MAX_AGE_MS }
+            .maxByOrNull { it.time }
+            ?.let { return it }
 
-        val activeProvider = providers.firstOrNull() ?: return null
+        val provider = providers.firstOrNull() ?: return null
         return suspendCancellableCoroutine { cont ->
-            val listener = android.location.LocationListener { location ->
-                if (cont.isActive) cont.resume(location)
-            }
+            val listener = android.location.LocationListener { if (cont.isActive) cont.resume(it) }
             try {
-                @Suppress("MissingPermission")
-                lm.requestSingleUpdate(activeProvider, listener, context.mainLooper)
+                lm.requestSingleUpdate(provider, listener, context.mainLooper)
                 cont.invokeOnCancellation { lm.removeUpdates(listener) }
             } catch (_: SecurityException) {
                 if (cont.isActive) cont.resume(null)
@@ -137,14 +105,13 @@ object GeoRestrictionManager {
         }
     }
 
-    private fun resolveCountry(context: Context, location: Location): String? {
-        return try {
-            val geocoder = Geocoder(context, Locale.US)
-            @Suppress("DEPRECATION")
-            val results = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-            results?.firstOrNull()?.countryCode
-        } catch (_: Exception) {
-            null
-        }
+    private fun resolveCountry(context: Context, location: Location): String? = try {
+        @Suppress("DEPRECATION")
+        Geocoder(context, Locale.US)
+            .getFromLocation(location.latitude, location.longitude, 1)
+            ?.firstOrNull()
+            ?.countryCode
+    } catch (_: Exception) {
+        null
     }
 }

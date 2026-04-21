@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.betnow.app.network.RetrofitClient
+import com.betnow.app.network.SocketManager
 import com.betnow.app.network.models.Category
 import com.betnow.app.network.models.Market
 import com.betnow.app.repository.MarketRepository
@@ -43,7 +44,7 @@ class MarketListViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun loadMarkets() {
-        _markets.value = Resource.Loading()
+        _markets.value = Resource.Loading
         viewModelScope.launch {
             _markets.value = marketRepo.getMarkets(search, category, sort)
         }
@@ -72,17 +73,15 @@ class MarketListViewModel(application: Application) : AndroidViewModel(applicati
 
     private fun loadCategories() {
         viewModelScope.launch {
-            val result = marketRepo.getCategories()
-            if (result is Resource.Success) {
-                _categories.value = result.data
+            (marketRepo.getCategories() as? Resource.Success)?.let {
+                _categories.value = it.data
             }
         }
     }
 
     fun loadWatchlistIds() {
         viewModelScope.launch {
-            val result = watchlistRepo.getWatchlist()
-            if (result is Resource.Success) {
+            (watchlistRepo.getWatchlist() as? Resource.Success)?.let { result ->
                 _watchlistIds.value = result.data.map { it.id }.toSet()
             }
         }
@@ -90,47 +89,33 @@ class MarketListViewModel(application: Application) : AndroidViewModel(applicati
 
     fun toggleWatchlist(market: Market) {
         val current = _watchlistIds.value ?: emptySet()
-        val isWatching = current.contains(market.id)
+        val watching = market.id in current
         viewModelScope.launch {
-            val result = if (isWatching) {
-                watchlistRepo.remove(market.id)
-            } else {
-                watchlistRepo.add(market.id)
-            }
+            val result = if (watching) watchlistRepo.remove(market.id) else watchlistRepo.add(market.id)
             if (result is Resource.Success) {
-                val updated = current.toMutableSet()
-                if (result.data) updated.add(market.id) else updated.remove(market.id)
-                _watchlistIds.value = updated
+                _watchlistIds.value = if (result.data) current + market.id else current - market.id
             }
         }
     }
 
     fun startOddsUpdates() {
-        marketRepo.observeOddsUpdates { marketId, newPrices ->
-            val currentList = (_markets.value as? Resource.Success)?.data?.toMutableList()
-                ?: return@observeOddsUpdates
-            val index = currentList.indexOfFirst { it.id == marketId }
-            if (index != -1) {
-                currentList[index] = currentList[index].copy(outcomePrices = newPrices)
-                _markets.postValue(Resource.Success(currentList))
-            }
+        SocketManager.onOddsUpdate { marketId, prices ->
+            updateMarket(marketId) { it.copy(outcomePrices = prices) }
         }
-        marketRepo.observeMarketResolved { marketId, winningOutcome ->
-            val currentList = (_markets.value as? Resource.Success)?.data?.toMutableList()
-                ?: return@observeMarketResolved
-            val index = currentList.indexOfFirst { it.id == marketId }
-            if (index != -1) {
-                currentList[index] = currentList[index].copy(
-                    resolved = true,
-                    winningOutcome = winningOutcome
-                )
-                _markets.postValue(Resource.Success(currentList))
-            }
+        SocketManager.onMarketResolved { marketId, winningOutcome ->
+            updateMarket(marketId) { it.copy(resolved = true, winningOutcome = winningOutcome) }
         }
     }
 
     fun stopOddsUpdates() {
-        marketRepo.stopObservingOddsUpdates()
-        marketRepo.stopObservingMarketResolved()
+        SocketManager.off("odds-update")
+        SocketManager.off("market-resolved")
+    }
+
+    private fun updateMarket(marketId: String, transform: (Market) -> Market) {
+        val list = (_markets.value as? Resource.Success)?.data ?: return
+        val index = list.indexOfFirst { it.id == marketId }
+        if (index == -1) return
+        _markets.postValue(Resource.Success(list.toMutableList().also { it[index] = transform(it[index]) }))
     }
 }

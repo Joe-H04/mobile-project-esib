@@ -17,7 +17,7 @@ class LeaderboardFragment : Fragment() {
     private var _binding: FragmentLeaderboardBinding? = null
     private val binding get() = _binding!!
     private val viewModel: LeaderboardViewModel by viewModels()
-    private lateinit var adapter: LeaderboardAdapter
+    private val adapter = LeaderboardAdapter()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -29,13 +29,9 @@ class LeaderboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = LeaderboardAdapter()
         binding.leaderboardRecycler.layoutManager = LinearLayoutManager(requireContext())
         binding.leaderboardRecycler.adapter = adapter
-
-        binding.swipeRefresh.setOnRefreshListener {
-            viewModel.load()
-        }
+        binding.swipeRefresh.setOnRefreshListener { viewModel.load() }
 
         viewModel.entries.observe(viewLifecycleOwner) { result ->
             binding.swipeRefresh.isRefreshing = false
@@ -47,14 +43,10 @@ class LeaderboardFragment : Fragment() {
                 }
                 is Resource.Success -> {
                     binding.progressBar.isVisible = false
-                    if (result.data.isEmpty()) {
-                        binding.emptyText.isVisible = true
-                        binding.leaderboardRecycler.isVisible = false
-                    } else {
-                        binding.emptyText.isVisible = false
-                        binding.leaderboardRecycler.isVisible = true
-                        adapter.submitList(result.data)
-                    }
+                    val empty = result.data.isEmpty()
+                    binding.emptyText.isVisible = empty
+                    binding.leaderboardRecycler.isVisible = !empty
+                    if (!empty) adapter.submitList(result.data)
                 }
                 is Resource.Error -> {
                     binding.progressBar.isVisible = false
